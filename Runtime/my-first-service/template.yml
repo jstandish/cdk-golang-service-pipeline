@@ -11,7 +11,7 @@ Resources:
       AutoPublishAlias: live
       DeploymentPreference:
       # Specifies the deployment configuration
-          Type: Linear10PercentEvery2Minutes
+          Type: Linear10PercentEvery1Minute
       Events:
         MyExampleApi:
           Type: Api
