@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as cf from '@aws-cdk/aws-cloudformation';
+import * as agw from '@aws-cdk/aws-apigateway';
 import { Repository } from './components/repository';
 import { BuildContainer } from './components/build';
 import { Pipeline } from './components/pipeline';
@@ -12,11 +13,9 @@ export class ServiceStack extends cf.NestedStack {
         super(scope, id);
 
         const sourceRepository = new Repository(this, `${props.serviceName}-repo`);
+        
         // Create the CodeBuild project
-
-
         props.environments.forEach(env => {
-
             // Create the CodeBuild project
             const build = new BuildContainer(this, `${props.serviceName}-${env}-build`, {
                 repo: sourceRepository.Repositroy,
@@ -27,7 +26,7 @@ export class ServiceStack extends cf.NestedStack {
             const pipeline = new Pipeline(this, `${props.serviceName}-${env}-pipeline`, {
                 branch: env,
                 build: build.Project,
-                sourcerepo: sourceRepository.Repositroy,
+                sourcerepo: sourceRepository.Repositroy
             });
         });
     }

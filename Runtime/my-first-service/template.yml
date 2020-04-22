@@ -2,12 +2,16 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Deploy 
 Resources:
-  TimeFunction:
+  Service1Function:
     Type: AWS::Serverless::Function
     Properties:
       Handler: main
       Runtime: go1.x
       CodeUri: ./
+      AutoPublishAlias: live
+      DeploymentPreference:
+      # Specifies the deployment configuration
+          Type: Linear10PercentEvery2Minutes
       Events:
         MyExampleApi:
           Type: Api

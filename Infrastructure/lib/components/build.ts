@@ -43,8 +43,7 @@ export class BuildContainer extends Construct {
                 "echo Build started on `date`",
                 "git config --global credential.helper '!aws codecommit credential-helper $@'",
                 "git config --global credential.UseHttpPath true",
-                "cd src",
-                `GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" main.go`, //build outside the container then copy in the main file
+                `go build -ldflags="-w -s" -o main main.go`, //build outside the container then copy in the main file
                 "go test ./...",
               ]
             },
@@ -52,6 +51,7 @@ export class BuildContainer extends Construct {
               "commands": [
                 "echo Build completed on `date`",
                 "echo Pushing the Lambda...",
+                "chmod +x main",
                 "aws cloudformation package --template-file template.yml --s3-bucket $S3_ARTIFACT_BUCKET --output-template-file outputtemplate.yml"
               ]
             }
@@ -61,7 +61,7 @@ export class BuildContainer extends Construct {
               "files": [
                 "**/*"
               ],
-              "base-directory": "src",
+              "base-directory": ".",
               "discard-paths": "no"
             }
           },
@@ -86,7 +86,7 @@ export class BuildContainer extends Construct {
           type: cb.BuildEnvironmentVariableType.PLAINTEXT,
         },
         "S3_ARTIFACT_BUCKET": {
-          value: s3ArtifactBucket.bucketArn,
+          value: s3ArtifactBucket.bucketName,
           type: cb.BuildEnvironmentVariableType.PLAINTEXT
         },
         "IMAGE_TAG": {

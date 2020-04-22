@@ -14,7 +14,7 @@ var _ = Describe("Main", func() {
 
     BeforeEach(func() {
         exampleResponse = MyResponse{
-            Message:  "first service",
+            Message:  "first service dev change 2",
         }
     })
 

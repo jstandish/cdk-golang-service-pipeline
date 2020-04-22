@@ -8,12 +8,13 @@ import cpa = require('@aws-cdk/aws-codepipeline-actions');
 import * as cloudformation from '@aws-cdk/aws-cloudformation';
 
 export class Pipeline extends Construct {
-    constructor(parent: Construct, name: string, config: { 
-            sourcerepo: cc.IRepository, 
-            branch: string, 
-            build: cb.IProject
-        }) {
+    constructor(parent: Construct, name: string, config: {
+        sourcerepo: cc.IRepository,
+        branch: string,
+        build: cb.IProject
+    }) {
         super(parent, name);
+
 
 
         const sourceOutput = new cp.Artifact();
@@ -37,7 +38,7 @@ export class Pipeline extends Construct {
         const cdkBuildOutput = new cp.Artifact('CdkBuildOutput');
         pipeline.addStage({
             stageName: "Build",
-            actions : [new cpa.CodeBuildAction({
+            actions: [new cpa.CodeBuildAction({
                 input: sourceOutput,
                 actionName: "Execute",
                 type: cpa.CodeBuildActionType.BUILD,
@@ -46,8 +47,8 @@ export class Pipeline extends Construct {
                     cdkBuildOutput
                 ]
             })]
-        });   
-        
+        });
+
 
         // Deployment Role
         const depRole = new iam.Role(this, `${name}-${config.branch}-deprole`, {
@@ -69,6 +70,7 @@ export class Pipeline extends Construct {
                 "iam:DeleteRolePolicy",
                 "iam:DetachRolePolicy",
                 "iam:PassRole",
+                "s3:PutObject",
                 "s3:GetObject",
                 "s3:GetObjectVersion",
                 "s3:GetBucketVersioning"
@@ -79,9 +81,9 @@ export class Pipeline extends Construct {
         }))
 
         pipeline.addStage({
-            stageName: "Deploy",
-            actions : [new cpa.CloudFormationCreateReplaceChangeSetAction({
-                actionName: "Deploy",
+            stageName: "Review",
+            actions: [new cpa.CloudFormationCreateReplaceChangeSetAction({
+                actionName: "CreateChangeSet",
                 adminPermissions: true,
                 stackName: `${name}`,
                 changeSetName: `${name}-changeset`,
@@ -92,7 +94,18 @@ export class Pipeline extends Construct {
                     cloudformation.CloudFormationCapabilities.ANONYMOUS_IAM
                 ],
                 role: depRole,
-            })]
+            })
+            ]
+        });
+
+        pipeline.addStage({
+            stageName: "Deploy",
+            actions: [
+                new cpa.CloudFormationExecuteChangeSetAction({
+                    actionName: "ExecuteDeploy",
+                    stackName: `${name}`,
+                    changeSetName: `${name}-changeset`,
+                })]
         });
     }
 }
